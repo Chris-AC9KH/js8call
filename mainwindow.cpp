@@ -9202,11 +9202,27 @@ void MainWindow::processCommandActivity() {
 					};
 				}
 
+				auto lookaheadMid = getLookaheadMessageIdForCallsign(who, mid);
+				if(lookaheadMid == -1 && isGroupMsg){
+					lookaheadMid = getLookaheadGroupMessageIdForCallsign(d.to, d.from, mid);
+				}
+
                 // and reply
-                reply = QString("%1 MSG %2 FROM %3");
-                reply = reply.arg(replyPath);
-                reply = reply.arg(text);
-                reply = reply.arg(from);
+				if(lookaheadMid != -1)
+				{
+					reply = QString("%1 MSG %2 FROM %3 NEXT MSG ID %4");
+					reply = reply.arg(replyPath);
+					reply = reply.arg(text);
+					reply = reply.arg(from);
+					reply = reply.arg(lookaheadMid);
+				}
+				else
+				{
+					reply = QString("%1 MSG %2 FROM %3");
+					reply = reply.arg(replyPath);
+					reply = reply.arg(text);
+					reply = reply.arg(from);
+				}
             }
         }
 
@@ -9490,6 +9506,29 @@ int MainWindow::getNextMessageIdForCallsign(QString callsign){
     return -1;
 }
 
+int MainWindow::getLookaheadMessageIdForCallsign(QString callsign, int msgId){
+	auto inbox = Inbox(inboxPath());
+	if(!inbox.open()){
+		return -1;
+	}
+
+	return inbox.getLookaheadMessageIdForCallsign(callsign, msgId);
+
+	int mid = inbox.getLookaheadMessageIdForCallsign(callsign, msgId);
+
+	if(mid == -1)
+	{
+		mid = inbox.getLookaheadMessageIdForCallsign(Radio::base_callsign(callsign), msgId);
+	}
+
+	if(mid != -1)
+	{
+		return mid;
+	}
+
+	return -1;
+}
+
 // Facade for Inbox::getNextGroupMessageIdForCallsign
 int MainWindow::getNextGroupMessageIdForCallsign(QString group_name, QString callsign)
 {
@@ -9499,6 +9538,17 @@ int MainWindow::getNextGroupMessageIdForCallsign(QString group_name, QString cal
 	}
 
 	return inbox.getNextGroupMessageIdForCallsign(group_name, callsign);
+}
+
+// Facade for Inbox::getLookaheadGroupMessageIdForCallsign
+int MainWindow::getLookaheadGroupMessageIdForCallsign(QString group_name, QString callsign, int afterMsgId)
+{
+	Inbox inbox(inboxPath());
+	if(!inbox.open()){
+		return -1;
+	}
+
+	return inbox.getLookaheadGroupMessageIdForCallsign(group_name, callsign, afterMsgId);
 }
 
 // Facade for Inbox::markGroupMsgDeliveredForCallsign
