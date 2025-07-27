@@ -599,6 +599,10 @@ MainWindow::MainWindow(QString  const & program_info,
   connect (&m_config, &Configuration::band_schedule_changed, this, [this](){
     this->m_bandHopped = true;
   });
+  connect (&m_config, &Configuration::auto_switch_bands_changed, this, [this](bool auto_switch_bands){
+	this->m_bandHopped = this->m_bandHopped || auto_switch_bands;
+  });
+  connect (&m_config, &Configuration::manual_band_hop_requested, this, &MainWindow::manualBandHop);
   connect (&m_config, &Configuration::enumerating_audio_devices, [this]()
   {
     showStatusMessage (tr ("Enumerating audio devices"));
@@ -1830,16 +1834,19 @@ void MainWindow::tryBandHop(){
   QDateTime d = DriftingDateTime::currentDateTimeUtc();
   d.setDate(QDate(2000, 1, 1));
 
-  QDateTime startOfDay = QDateTime(QDate(2000, 1, 1), QTime(0, 0));
-  QDateTime endOfDay = QDateTime(QDate(2000, 1, 1), QTime(23, 59));
+  QDateTime startOfDay = QDateTime(QDate(2000, 1, 1), QTime(0, 0), QTimeZone::utc());
+  QDateTime endOfDay = QDateTime(QDate(2000, 1, 1), QTime(23, 59, 59, 999), QTimeZone::utc());
 
-  // see if we can find a needed band switch...
+  StationList::Station * hopStation = nullptr;
+
+  // See if we can find a needed band switch...
+  // In the case of overlapping windows, choose the latest one
   foreach(auto station, stations){
       // we can switch to this frequency if we're in the time range, inclusive of switch_at, exclusive of switch_until
       // and if we are switching to a different frequency than the last hop. this allows us to switch bands at that time,
       // but then later we can later switch to a different band if needed without the automatic band switching to take over
       bool inTimeRange = (
-        (station.switch_at_ <= d && d <= station.switch_until_) ||          // <- normal range, 12-16 && 6-8, evalued as 12 <= d <= 16 || 6 <= d <= 8
+        (station.switch_at_ <= d && d <= station.switch_until_) ||          // <- normal range, 12-16 && 6-8, evaluated as 12 <= d <= 16 || 6 <= d <= 8
 
         (station.switch_until_ < station.switch_at_ && (                    // <- say for a range of 12->2 & 2->12;  12->2,
              (station.switch_at_ <= d && d <= endOfDay)         ||          //    should be evaluated as 12 <= d <= 23:59 || 00:00 <= d <= 2
@@ -1847,58 +1854,87 @@ void MainWindow::tryBandHop(){
         ))
       );
 
-      bool noOverride = (
-        m_bandHopped || (!m_bandHopped && station.frequency_ != m_bandHoppedFreq)
-      );
+	  if(inTimeRange)
+	  {
+		  delete hopStation;
+		  hopStation = new StationList::Station(station);
+	  }
+  }
 
-      bool freqIsDifferent = (station.frequency_ != dialFreq);
+  // If we have a candidate station, see if the hop is valid, and if so, do it
+  if(hopStation != nullptr)
+  {
+	  bool noOverride = (
+			  m_bandHopped || (!m_bandHopped && hopStation->frequency_ != m_bandHoppedFreq)
+	  );
 
-      bool canSwitch = (
-        inTimeRange     &&
-        noOverride      &&
-        freqIsDifferent
-      );
+	  bool freqIsDifferent = (hopStation->frequency_ != dialFreq);
 
-      // switch, if we can and the band is different than our current band
-      if(canSwitch){
-          Frequency frequency = station.frequency_;
+	  bool canSwitch = (
+			  noOverride      &&
+			  freqIsDifferent
+	  );
 
-          m_bandHopped = false;
-          m_bandHoppedFreq = frequency;
+	  // switch, if we can and the band is different than our current band
+	  if(canSwitch){
+		  Frequency frequency = hopStation->frequency_;
 
-          SelfDestructMessageBox * m = new SelfDestructMessageBox(30,
-            "Scheduled Frequency Change",
-            QString("A scheduled frequency change has arrived. The rig frequency will be changed to %1 MHz in %2 second(s).").arg(Radio::frequency_MHz_string(station.frequency_)),
-            QMessageBox::Information,
-            QMessageBox::Ok | QMessageBox::Cancel,
-            QMessageBox::Ok,
-            true,
-            this);
+		  m_bandHopped = false;
+		  m_bandHoppedFreq = frequency;
 
-          connect(m, &SelfDestructMessageBox::accepted, this, [this, frequency](){
-              m_bandHopped = true;
-              setRig(frequency);
-          });
+		  SelfDestructMessageBox * m = new SelfDestructMessageBox(30,
+																  "Scheduled Frequency Change",
+																  QString("A scheduled frequency change has arrived. The rig frequency will be changed to %1 MHz in %2 second(s).").arg(Radio::frequency_MHz_string(frequency)),
+																  QMessageBox::Information,
+																  QMessageBox::Ok | QMessageBox::Cancel,
+																  QMessageBox::Ok,
+																  true,
+																  this);
 
-          m->show();
+		  connect(m, &SelfDestructMessageBox::finished, this, [this, m, frequency](){
+			  if(m->result() == QMessageBox::Ok)
+			  {
+				  m_bandHopped = true;
+				  setRig(frequency);
+			  }
+			  m->deleteLater();
+		  });
+
+		  m->show();
 
 #if 0
-          // TODO: jsherer - this is totally a hack because of the signal that gets emitted to clearActivity on band change...
+		  // TODO: jsherer - this is totally a hack because of the signal that gets emitted to clearActivity on band change...
           QTimer *t = new QTimer(this);
           t->setInterval(250);
           t->setSingleShot(true);
-          connect(t, &QTimer::timeout, this, [this, station, dialFreq](){
+          connect(t, &QTimer::timeout, this, [this, frequency, dialFreq](){
               auto message = QString("Scheduled frequency switch from %1 MHz to %2 MHz");
               message = message.arg(Radio::frequency_MHz_string(dialFreq));
-              message = message.arg(Radio::frequency_MHz_string(station.frequency_));
+              message = message.arg(Radio::frequency_MHz_string(frequency));
               writeNoticeTextToUI(DriftingDateTime::currentDateTimeUtc(), message);
           });
           t->start();
 #endif
 
-          return;
-      }
+		  return;
+	  }
+
+	  delete hopStation;
   }
+}
+
+void MainWindow::manualBandHop(const StationList::Station station)
+{
+	// make sure we're not transmitting
+	if(isMessageQueuedForTransmit()){
+		return;
+	}
+
+	Frequency frequency = station.frequency_;
+
+	m_bandHopped = true;
+	m_bandHoppedFreq = frequency;
+	setRig(frequency);
 }
 
 //--------------------------------------------------- MainWindow destructor
