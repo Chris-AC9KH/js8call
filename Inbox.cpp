@@ -312,7 +312,7 @@ int Inbox::getLookaheadMessageIdForCallsign(const QString &callsign, int afterMs
 	}
 
 	const char* sql = "SELECT inbox_v1.id, inbox_v1.blob FROM inbox_v1 "
-					  "WHERE msg_id > ? "
+					  "WHERE inbox_v1.id > ? "
 					  "AND json_extract(blob, '$.type') = 'STORE' "
 					  "AND json_extract(blob, '$.params.TO') LIKE ? "
 					  "AND inbox_group_recip_v1.id IS NULL "
@@ -540,7 +540,7 @@ int Inbox::getLookaheadGroupMessageIdForCallsign(const QString &group_name, cons
 
 	const char* sql = "SELECT inbox_v1.id, inbox_v1.blob FROM inbox_v1 "
 					  "LEFT JOIN inbox_group_recip_v1 ON (inbox_group_recip_v1.msg_id=inbox_v1.id AND inbox_group_recip_v1.callsign = ?) "
-					  "WHERE msg_id > ? "
+					  "WHERE inbox_v1.id > ? "
 					  "AND json_extract(blob, '$.type') = 'STORE' "
 					  "AND json_extract(blob, '$.params.TO') LIKE ? "
 					  "AND json_extract(blob, '$.params.UTC') > ? "
@@ -569,7 +569,7 @@ int Inbox::getLookaheadGroupMessageIdForCallsign(const QString &group_name, cons
 	rc = sqlite3_bind_int(stmt, 5, 10);
 	rc = sqlite3_bind_int(stmt, 6, 0);
 
-	//qDebug() << "exec " << sqlite3_expanded_sql(stmt);
+	qDebug() << "exec " << sqlite3_expanded_sql(stmt);
 
 	int next_id = -1;
 	while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
