@@ -1776,6 +1776,67 @@ void MainWindow::initializeGroupMessageDummyData()
 
 	processCommandActivity();
 
+	dt = DriftingDateTime::currentDateTimeUtc().addSecs(-300);
+
+	CommandDetail cmd4 = {};
+	cmd4.cmd = " MSG TO:";
+	cmd4.from = "KN4CRD";
+	cmd4.to = "K4RWR";
+	cmd4.utcTimestamp = dt;
+	cmd4.submode = Varicode::JS8CallNormal;
+	cmd4.text = "W1AW TEST MESSAGE TO STATION";
+
+	m_rxCommandQueue.append(cmd4);
+
+	processCommandActivity();
+
+	dt = DriftingDateTime::currentDateTimeUtc().addSecs(-150);
+
+	CommandDetail cmd5 = {};
+	cmd5.cmd = " MSG TO:";
+	cmd5.from = "KN4CRD";
+	cmd5.to = "K4RWR";
+	cmd5.utcTimestamp = dt;
+	cmd5.submode = Varicode::JS8CallNormal;
+	cmd5.text = "W1AW ANOTHER TEST MESSAGE TO STATION";
+
+	m_rxCommandQueue.append(cmd5);
+
+	processCommandActivity();
+
+	CommandDetail cmd6 = {};
+	cmd6.cmd = " QUERY MSGS";
+	cmd6.from = "W1AW";
+	cmd6.to = "K4RWR";
+	cmd6.utcTimestamp = DriftingDateTime::currentDateTimeUtc();
+	cmd6.submode = Varicode::JS8CallNormal;
+
+	m_rxCommandQueue.append(cmd6);
+
+	processCommandActivity();
+
+	mid = getNextMessageIdForCallsign("W1AW");
+
+	qDebug() << "Testing group messaging";
+	qDebug() << "Test message ID: " << mid;
+
+	textString = "MSG ";
+	textString += std::to_string(mid);
+
+	qDebug() << "Text string: " << textString.c_str();
+
+	CommandDetail cmd7 = {};
+	cmd7.cmd = " QUERY";
+	cmd7.from = "W1AW";
+	cmd7.to = "K4RWR";
+	cmd7.utcTimestamp = DriftingDateTime::currentDateTimeUtc();
+	cmd7.submode = Varicode::JS8CallNormal;
+	cmd7.text = textString.c_str();
+
+	m_rxCommandQueue.append(cmd7);
+
+	processCommandActivity();
+
 	displayActivity(true);
 }
 

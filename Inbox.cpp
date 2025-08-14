@@ -315,7 +315,6 @@ int Inbox::getLookaheadMessageIdForCallsign(const QString &callsign, int afterMs
 					  "WHERE inbox_v1.id > ? "
 					  "AND json_extract(blob, '$.type') = 'STORE' "
 					  "AND json_extract(blob, '$.params.TO') LIKE ? "
-					  "AND inbox_group_recip_v1.id IS NULL "
 					  "ORDER BY inbox_v1.id ASC "
 					  "LIMIT ? OFFSET ?;";
 
@@ -327,8 +326,8 @@ int Inbox::getLookaheadMessageIdForCallsign(const QString &callsign, int afterMs
 
 	auto c8 = callsign.toLocal8Bit();
 
-	rc = sqlite3_bind_text(stmt, 1, c8.data(), -1, nullptr);
-	rc = sqlite3_bind_int(stmt, 2, afterMsgId);
+	rc = sqlite3_bind_int(stmt, 1, afterMsgId);
+	rc = sqlite3_bind_text(stmt, 2, c8.data(), -1, nullptr);
 	rc = sqlite3_bind_int(stmt, 3, 10);
 	rc = sqlite3_bind_int(stmt, 4, 0);
 
