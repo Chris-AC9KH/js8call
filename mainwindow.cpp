@@ -9279,7 +9279,7 @@ void MainWindow::processCommandActivity() {
 
 				auto lookaheadMid = getLookaheadMessageIdForCallsign(who, mid);
 				if(lookaheadMid == -1 && isGroupMsg){
-					lookaheadMid = getLookaheadGroupMessageIdForCallsign(d.to, d.from, mid);
+					lookaheadMid = getLookaheadGroupMessageIdForCallsign(d.to, who, mid);
 				}
 
                 // and reply
