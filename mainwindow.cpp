@@ -8906,12 +8906,14 @@ void MainWindow::processCommandActivity() {
         int freq = -1;
 
         // QUERIED SNR
-        if (d.cmd == " SNR?" && !isAllCall) {
+        // Only reply to a SNR request if there is no incoming MSG's and is not directed to AllCall
+        if (d.cmd == " SNR?" && !isAllCall && m_messageBuffer.isEmpty()) {
             reply = QString("%1 SNR %2").arg(d.from).arg(Varicode::formatSNR(d.snr));
         }
 
         // QUERIED INFO
-        else if (d.cmd == " INFO?" && !isAllCall) {
+         // Only reply to a INFO request if there is no incoming MSG's and is not directed to AllCall
+        else if (d.cmd == " INFO?" && !isAllCall && m_messageBuffer.isEmpty()) {
             QString info = m_config.my_info();
             if (info.isEmpty()) {
                 continue;
@@ -8921,7 +8923,8 @@ void MainWindow::processCommandActivity() {
         }
 
         // QUERIED ACTIVE
-        else if (d.cmd == " STATUS?" && !isAllCall) {
+         // Only reply to a STATUS request if there is no incoming MSG's and is not directed to AllCall
+        else if (d.cmd == " STATUS?" && !isAllCall && m_messageBuffer.isEmpty()) {
             QString status = m_config.my_status();
             if (status.isEmpty()) {
                 continue;
@@ -8931,7 +8934,8 @@ void MainWindow::processCommandActivity() {
         }
 
         // QUERIED GRID
-        else if (d.cmd == " GRID?" && !isAllCall) {
+         // Only reply to a GRID request if there is no incoming MSG's and is not directed to AllCall
+        else if (d.cmd == " GRID?" && !isAllCall && m_messageBuffer.isEmpty()) {
             QString grid = m_config.my_grid();
             if (grid.isEmpty()) {
                 continue;
@@ -8941,7 +8945,8 @@ void MainWindow::processCommandActivity() {
         }
 
         // QUERIED STATIONS HEARD
-        else if (d.cmd == " HEARING?" && !isAllCall)
+         // Only reply to a HEARING request if there is no incoming MSG's and is not directed to AllCall
+        else if (d.cmd == " HEARING?" && !isAllCall && m_messageBuffer.isEmpty())
         {
             auto calls = m_callActivity.keys();
 
@@ -9344,7 +9349,8 @@ void MainWindow::processCommandActivity() {
         }
 
         // PROCESS BUFFERED QUERY MSGS
-        else if (d.cmd == " QUERY MSGS" && ui->actionModeAutoreply->isChecked()){
+        // Do not process this request if there is incoming MSG as it breaks the incoming
+        else if (d.cmd == " QUERY MSGS" && ui->actionModeAutoreply->isChecked() && m_messageBuffer.isEmpty()){
             auto who = d.from; // keep in mind, this is the sender, not the original requestor if relayed
             auto replyPath = d.from;
 
@@ -9378,7 +9384,8 @@ void MainWindow::processCommandActivity() {
         }
 
         // PROCESS BUFFERED QUERY CALL
-        else if (d.cmd == " QUERY CALL" && ui->actionModeAutoreply->isChecked()){
+        // Do not process this request if there is incoming MSG as it breaks the incoming
+        else if (d.cmd == " QUERY CALL" && ui->actionModeAutoreply->isChecked() && m_messageBuffer.isEmpty()){
             auto replyPath = d.from;
             if(d.relayPath.contains(">")){
                 replyPath = d.relayPath;
