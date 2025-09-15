@@ -4,3 +4,5 @@ output
 docker/config/
 js8call.ini
 Xcode/
+CMakeLists.txt.user
+build/
