@@ -397,6 +397,10 @@ qt_add_resources(
 set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -Wall -Wextra")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -fexceptions -frtti")
 
+if (WIN32)
+  set (CMAKE_EXE_LINKER_FLAGS "-Wl,-subsystem,windows")
+endif (WIN32)
+
 #------------------------------------------------------------------------------#
 # In order to execute the macdeployqt and windeployqt commands, we'll need
 # to know where they live, which is the same location as the qmake binary.
