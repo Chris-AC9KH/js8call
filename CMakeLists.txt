@@ -188,7 +188,7 @@ endif (APPLE)
 
 set(TARGET ${PROJECT_NAME})
 
-qt_add_executable(${TARGET} MACOSX_BUNDLE ${ICON_FILE})
+qt_add_executable(${TARGET} MACOSX_BUNDLE WIN32 ${ICON_FILE})
 
 #------------------------------------------------------------------------------#
 # OSX requires a number of settings in the plist file.
@@ -396,10 +396,6 @@ qt_add_resources(
 
 set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -Wall -Wextra")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -fexceptions -frtti")
-
-if (WIN32)
-  set (CMAKE_EXE_LINKER_FLAGS "-Wl,-subsystem,windows")
-endif (WIN32)
 
 #------------------------------------------------------------------------------#
 # In order to execute the macdeployqt and windeployqt commands, we'll need
