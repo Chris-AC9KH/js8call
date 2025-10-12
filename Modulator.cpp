@@ -3,7 +3,7 @@
 #include <limits>
 #include <numbers>
 #include <QDateTime>
-#include <QDebug>
+#include <QLoggingCategory>
 #include <QtMath>
 #include "commons.h"
 #include "DriftingDateTime.h"
@@ -12,6 +12,8 @@
 #include "soundout.h"
 
 #include "moc_Modulator.cpp"
+
+Q_DECLARE_LOGGING_CATEGORY(modulator_js8)
 
 namespace
 {
@@ -80,7 +82,7 @@ Modulator::start(double        const frequency,
   }
   else
   {
-    qDebug() << "Modulator::start: no audio output stream assigned";
+    qCDebug(modulator_js8) << "Modulator::start: no audio output stream assigned";
   }
 }
 
@@ -214,3 +216,5 @@ Modulator::readData(char * const data,
   Q_ASSERT (State::Idle == m_state);
   return 0;
 }
+
+Q_LOGGING_CATEGORY(modulator_js8, "modulator.js8", QtWarningMsg)
