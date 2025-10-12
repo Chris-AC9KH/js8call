@@ -95,8 +95,6 @@ include(VersionCompute)
 #------------------------------------------------------------------------------#
 
 option(WSJT_QDEBUG_TO_FILE     "Redirect Qt debugging messages to a trace file.")
-option(WSJT_TRACE_CAT          "Debugging option that turns on CAT diagnostics.")
-option(WSJT_TRACE_CAT_POLLS    "Debugging option that turns on CAT diagnostics during polling.")
 option(WSJT_HAMLIB_TRACE       "Debugging option that turns on minimal Hamlib internal diagnostics.")
 option(WSJT_RIG_NONE_CAN_SPLIT "Allow split operation with \"None\" as rig.")
 
@@ -120,26 +118,6 @@ cmake_dependent_option(
   ON
   "CMAKE_BUILD_TYPE STREQUAL Debug"
   OFF)
-
-#------------------------------------------------------------------------------#
-# Handle Qt debugging statements in release builds.
-#------------------------------------------------------------------------------#
-
-if (WSJT_QDEBUG_IN_RELEASE)
-  # context info in Qt message handler in release configuration
-  set_property(
-    DIRECTORY
-    APPEND
-    PROPERTY COMPILE_DEFINITIONS $<$<NOT:$<CONFIG:Debug>>:QT_MESSAGELOGCONTEXT>
-  )
-else (WSJT_QDEBUG_IN_RELEASE)
-  # disable Qt trace and warning messages from release configurations
-  set_property(
-    DIRECTORY
-    APPEND
-    PROPERTY COMPILE_DEFINITIONS $<$<NOT:$<CONFIG:Debug>>:QT_NO_DEBUG_OUTPUT;QT_NO_WARNING_OUTPUT>
-  )
-endif (WSJT_QDEBUG_IN_RELEASE)
 
 #------------------------------------------------------------------------------#
 # Ensure we have required library dependencies; we'll need headers from the

@@ -1,4 +1,7 @@
+#include <QLoggingCategory>
 #include "EmulateSplitTransceiver.hpp"
+
+Q_DECLARE_LOGGING_CATEGORY(emulatesplittransceiver_js8)
 
 EmulateSplitTransceiver::EmulateSplitTransceiver (std::unique_ptr<Transceiver> wrapped, QObject * parent)
   : Transceiver {parent}
@@ -19,9 +22,8 @@ EmulateSplitTransceiver::EmulateSplitTransceiver (std::unique_ptr<Transceiver> w
 
 void EmulateSplitTransceiver::set (TransceiverState const& s, unsigned sequence_number) noexcept
 {
-#if WSJT_TRACE_CAT
-  qDebug () << "EmulateSplitTransceiver::set: state:" << s << "#:" << sequence_number;
-#endif
+  qCDebug (emulatesplittransceiver_js8) << "EmulateSplitTransceiver::set: state:" << s << "#:" << sequence_number;
+
   // save for use in updates
   rx_frequency_ = s.frequency ();
   tx_frequency_ = s.tx_frequency ();
@@ -37,9 +39,7 @@ void EmulateSplitTransceiver::set (TransceiverState const& s, unsigned sequence_
 void EmulateSplitTransceiver::handle_update (TransceiverState const& state,
                                              unsigned sequence_number)
 {
-#if WSJT_TRACE_CAT
-  qDebug () << "EmulateSplitTransceiver::handle_update: from wrapped:" << state;
-#endif
+  qCDebug (emulatesplittransceiver_js8) << "EmulateSplitTransceiver::handle_update: from wrapped:" << state;
 
   if (state.split ())
     {
@@ -55,11 +55,11 @@ void EmulateSplitTransceiver::handle_update (TransceiverState const& state,
       new_state.tx_frequency (tx_frequency_);
       new_state.split (split_);
 
-#if WSJT_TRACE_CAT
-      qDebug () << "EmulateSplitTransceiver::handle_update: signalling:" << state;
-#endif
+      qCDebug (emulatesplittransceiver_js8) << "EmulateSplitTransceiver::handle_update: signalling:" << state;
 
       // signal emulated state
       Q_EMIT update (new_state, sequence_number);
     }
 }
+
+Q_LOGGING_CATEGORY(emulatesplittransceiver_js8, "emulatesplittransceiver.js8", QtWarningMsg)

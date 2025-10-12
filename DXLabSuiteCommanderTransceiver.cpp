@@ -1,5 +1,6 @@
 #include "DXLabSuiteCommanderTransceiver.hpp"
 
+#include <QLoggingCategory>
 #include <QTcpSocket>
 #include <QRegularExpression>
 #include <QLocale>
@@ -11,6 +12,8 @@
 #include "NetworkServerLookup.hpp"
 
 #include "moc_DXLabSuiteCommanderTransceiver.cpp"
+
+Q_DECLARE_LOGGING_CATEGORY(dxlabsuitecommandertransceiver_js8)
 
 namespace
 {
@@ -251,11 +254,7 @@ void DXLabSuiteCommanderTransceiver::do_mode (MODE m)
 
 void DXLabSuiteCommanderTransceiver::poll ()
 {
-#if WSJT_TRACE_CAT && WSJT_TRACE_CAT_POLLS
-  bool quiet {false};
-#else
-  bool quiet {true};
-#endif
+  bool quiet {!transceiverbase_js8().isDebugEnabled()};
 
   auto reply = command_with_reply ("<command:10>CmdGetFreq<parameters:0>", quiet);
   if (0 == reply.indexOf ("<CmdFreq:"))
@@ -445,10 +444,10 @@ QString DXLabSuiteCommanderTransceiver::command_with_reply (QString const& cmd, 
     }
 
   auto result = commander_->readAll ();
-  // qDebug () << "result: " << result;
+  // qCDebug (dxlabsuitecommandertransceiver_js8) << "result: " << result;
   // for (int i = 0; i < result.size (); ++i)
   //   {
-  //     qDebug () << i << ":" << hex << int (result[i]);
+  //     qCDebug (dxlabsuitecommandertransceiver_js8) << i << ":" << hex << int (result[i]);
   //   }
 
   if (!no_debug)
@@ -506,3 +505,5 @@ auto DXLabSuiteCommanderTransceiver::string_to_frequency (QString s) const -> Fr
     }
   return (f + 1e-4) * 1e3;
 }
+
+Q_LOGGING_CATEGORY(dxlabsuitecommandertransceiver_js8, "dxlabsuitecommandertransceiver.js8", QtWarningMsg)
