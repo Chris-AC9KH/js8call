@@ -23,6 +23,21 @@ JS8Call is a derivative of the WSJT-X application, restructured and redesigned f
 # Building JS8Call From Sourcecode
 Instructions can be found in [docs](docs) in the source tree for building JS8Call on MacOS, Linux and Windows, as well as a contributor's guide.
 
+
+# Debugging JS8Call
+
+You can get a lot of debug output reporting what the program does by setting the environment variable `QT_LOGGING_RULES` to an appropriate value.
+
+The value `*.js8=true` gives you all output there is.
+
+Each line starts with a "logging category". These can be used to filter, so fewer lines you are not interested in will be given.
+
+For example, if you are interested in lines starting with `mainwindow.js8` and `configuration.js8` only, to debug a certain problem, set `QT_LOGGING_RULES` to `mainwindow.js8=true;configuration.js8=true` to just see what those two have to say.
+
+You find `decoder.js8` a bit too noisy, you may use the value `*.js8=true;decoder.js8=false` to silence it, but still see all the others.
+
+The official documentation of what we are using here can be found at [https://doc.qt.io/qt-6/qloggingcategory.html#checking-category-configuration](https://doc.qt.io/qt-6/qloggingcategory.html#checking-category-configuration).
+
 # History
 * July 6, 2017 - The initial idea of using a modification to the FT8 protocol to support long-form QSOs was developed by Jordan, KN4CRD, and submitted to the WSJT-X mailing list: https://sourceforge.net/p/wsjt/mailman/message/35931540/
 * August 31, 2017 - Jordan, KN4CRD, did a little development and modified WSJT-X to support long-form QSOs using the existing FT8 protocol: https://sourceforge.net/p/wsjt/mailman/message/36020051/  He sent a video example to the WSJT-X group: https://widefido.wistia.com/medias/7bb1uq62ga
