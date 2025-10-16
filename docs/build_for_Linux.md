@@ -2,12 +2,6 @@
 
 ...and also building Hamlib.
 
-Note: versions of Qt older than 6.5 are deprecated for building JS8Call 2.4 or newer. Use of Qt 6.8.3 is recommended. While other versions of Qt down to 6.5 are possible to use, there is significant risk that unwanted audio or PTT bugs may be injected into your build. The Qt Group is deprecating use of native audio back ends in favor of standardizing on FFmpeg audio, which requires either PulseAudio or PipeWire on linux. Most linux distributions do not ship with Qt 6.8.3 with proper FFmpeg audio support. Instead of using distribution packaged Qt, you can download pre-built Qt 6.8.3 library packages with FFmpeg audio support built-in [here](https://github.com/Chris-AC9KH/js8lib/releases/tag/js8lib-2.3) for both x86_64 and arm64.
-
-Depending on where you install the package (/usr/local/Qt recommended), this will require using `-DCMAKE_PREFIX_PATH=<path_to_your_qt_install>` for build.
-
-Alternatively, you can obtain Qt 6.8.3 from qt.io by downloading and using the Qt Online Installer and Qt Maintenence Tool to maintain your installed versions of Qt on your linux distribution. Qt is both commercially and open source licensed. This requires creation of a free account on qt.io which will allow access to their download area to get the Online Installer, where you must agree to use the open source license to build JS8Call.
-
 ## Linux versions
 
 This file contains build instructions for
@@ -38,6 +32,14 @@ apt-cache search --names-only libboost1 | grep -P 'libboost1.\d+\-dev'
 
 JS8Call has been compiled successfully with `libboost1.81-dev`, `libboost1.83-dev`, and `libboost1.88-dev`.
 
+You should also check which version of Qt this gives you.
+
+```shell
+dpkg -s qt6-base-dev | grep Version:
+```
+
+The version should be at least 6.5.X for some X. If it is only some 6.4.X, that Qt version cannot be used to compile. You'll need to refer to "getting Qt" below.
+
 ### Fedora:
 
 Issue the following commands in a terminal window:
@@ -48,6 +50,42 @@ sudo dnf install git cmake clang \
   boost-devel fftw-devel libusb1-devel hamlib-devel \
   qt6-qtbase-devel qt6-qtmultimedia-devel qt6-qtserialport-devel \
   libudev-devel rpm-build
+```
+
+Check whether the version of Qt this gives you is at least 6.5.X for some X, e.g., by checking the output of
+
+```
+dnf info qt6-qtbase-devel
+```
+
+and looking at the installed version.
+
+### Obtaining Qt if you have to, or to fix audio problems
+
+Some distributions, notably Debian 12 (aka Bookworm), Ubuntu Noble, and Linux Mint 22.2, come with old Qt 6.4.X versions.  These are not good enough for building JS8Call.  So you need to obtain a newer version.
+
+Qt is deprecating use of native audio back-ends in favor of standardizing on FFmpeg audio. This requires either PulseAudio or PipeWire on Linux. Some Linux distributions ship Qt 6.8.3 without proper FFmpeg audio support.  So if audio does not work with your version of JS8Call, obtaining Qt 6.8.3 together with FFmpeg audio support built-in could help you.
+
+Once you need to obtain Qt anyway, obtaining Qt 6.8.3 (or even newer) is recommended.  It is possible to use older versions of Qt, down to 6.5, but there is significant risk that unwanted audio or PTT bugs may be injected into your build.
+
+There are several ways of obtaining Qt.  What we present here results in the new Qt version being used just for JS8Call, without touching the system Qt.  The two can co-exist in parallel.
+
+#### Obtaining from us
+
+You can download pre-built Qt 6.8.3 library packages with FFmpeg audio support built-in [https://github.com/Chris-AC9KH/js8lib/releases/tag/js8lib-2.3](https://github.com/Chris-AC9KH/js8lib/releases/tag/js8lib-2.3) for both x86_64 and arm64.  Unpack the appropriate one to whatever directory you want, maybe `/opt/js8call-qt`.  These files should stay there as long as you want to be able to use the `js8call` binary you'll build.
+
+#### Obtaining from Qt
+
+Alternatively, you can register with [https://www.qt.io/](https://www.qt.io/), the company behind Qt, and download and install Qt with their "Online Installer".  You can install the default choice, which gives you a selection of the most recent Desktop version of Qt. Alternatively, you can perform a custom installation to pull Qt 6.8.3. If you used the default, you'll need to afterwards run the program `qt/MaintenanceTool` to also install the additional Qt library "Qt6 Serial Port".
+
+#### Using the newly installed Qt for the build
+
+Let us say you define a variable `$qt_path` to point at your new Qt installation.  This needs to point to a directory that contains a subdirectory `lib`, and `ls -l $qt_path/lib/cmake/Qt6/Qt6Config.cmake` needs to be successful.  So possibly `qt_path=/opt/js8call-qt/Qt` (if you obtained from us) or something like `qt_path=/opt/js8call-qt/qt/6.9.3/gcc_64` if you obtained directly from Qt.
+
+With that, the first `cmake` command below needs to become:
+
+```bash
+cmake -D CMAKE_PREFIX_PATH=$qt_path -D CMAKE_INSTALL_PREFIX=/opt/js8call ../js8call 
 ```
 
 ## Choice of build directory
@@ -88,52 +126,26 @@ cmake --build . -- -j 4
 
 The final `-- -j 4` part instructs the build to do up to 4 different things in parallel. This is not essential, but speeds up the build process considerably. You can tune this by changing the 4 to some other number. To stay on the safe side, use a number that is less than the total amount of RAM in GByte of the computer that runs the build, and also less than the number of CPU kernels. Other than slowness, it never hurts to use 1.  Build instability can result if you use too high a number.
 
-This builds `js8call` (which takes a while), but does not install it yet.  For quick experiments, you can skip that still-missing installation step and run the `js8call` binary that the build has provided in the `build` directory:
+This builds `JS8Call` (which takes a while), but does not install it yet.  For quick experiments, you can skip that still-missing installation step and run the `JS8Call` binary that the build has provided in the `build` directory:
 
 ```bash
 cd $HOME/js8-build/build &&
-./js8call
+./JS8Call
 ```
-
 
 ## Installation
 
-Note: these instructions only work with versions of JS8Call, 2.3.1 and earlier. CPack was deprecated in the JS8Call project after v2.3.1 and you must consult your distro documentation and use the native tools available in your linux distribution to package a distributable installer.
+**FIXME Installation currently does not work. It should be**
 
-### Debian-based systems
-
-Run,
-
-```bash
-cd $HOME/js8-build/build &&
-cpack -G DEB
+```
+cmake --install .
 ```
 
-This produces a package file of the type `js8call_*_*.deb`, which you can install with the following commands:
+**but that does not work.**
 
-```bash
-cp $HOME/js8-build/build/js8call_*_*.deb /var/tmp &&
-sudo apt-get install /var/tmp/js8call_*_*.deb &&
-rm /var/tmp/js8call_*_*.deb
-```
+Workaround: For now, run `./JS8Call` from the directory where you built.
 
-The copying ensures that the user `apt` can read the `.deb` file, even if `$HOME` isn't world-readable.  While not strictly neccessary, `apt-get` is happier if this is the case.
-
-### Fedora
-
-To create the package archive, run
-
-```bash
-cd $HOME/js8-build/build &&
-cpack -G RPM
-```
-
-This leaves you with a file `js8call-*.*.rpm` which you can install via
-
-```bash
-cd $HOME/js8-build/build &&
-sudo dnf install ./js8call-*.*.rpm
-```
+Alternatively, you can copy that binary manually wherever you want it to sit.
 
 ## Optional: Building Hamlib
 
