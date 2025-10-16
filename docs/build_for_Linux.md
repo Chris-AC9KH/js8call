@@ -74,7 +74,7 @@ There are several ways of obtaining Qt.  What we present here results in the new
 
 You can download pre-built Qt 6.8.3 library packages with FFmpeg audio support built-in [https://github.com/Chris-AC9KH/js8lib/releases/tag/js8lib-2.3](https://github.com/Chris-AC9KH/js8lib/releases/tag/js8lib-2.3) for both x86_64 and arm64.  Unpack the appropriate one to whatever directory you want, maybe `/opt/js8call-qt`.  These files should stay there as long as you want to be able to use the `js8call` binary you'll build.
 
-#### Obtaining form Qt
+#### Obtaining from Qt
 
 Alternatively, you can register with [https://www.qt.io/](https://www.qt.io/), the company behind Qt, and download and install Qt with their "Online Installer".  You can install the default choice, which gives you a selection of the most recent Desktop version of Qt. Alternatively, you can perform a custom installation to pull Qt 6.8.3. If you used the default, you'll need to afterwards run the program `qt/MaintenanceTool` to also install the additional Qt library "Qt6 Serial Port".
 
