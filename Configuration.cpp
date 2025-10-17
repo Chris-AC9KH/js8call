@@ -26,13 +26,12 @@
 // clicked. Conversely, all changes must  be discarded if the settings
 // UI "Cancel" button is clicked.
 //
-// There is  a complication related  to the radio interface  since the
-// this module offers  the facility to test the  radio interface. This
-// test means  that the  public visibility to  the radio  being tested
-// must be  changed.  To  maintain the  illusion of  deferring changes
-// until they  are accepted, the  original radio related  settings are
-// stored upon showing  the UI and restored if the  UI is dismissed by
-// canceling.
+// There is a complication  related to the radio interface  since this
+// module offers  the facility to test the  radio interface. This test
+// means that the public visibility to the radio being tested  must be
+// changed.  To maintain the illusion of deferring changes  until they
+// are accepted,  the original radio related settings  are stored upon
+// showing the UI and restored if the  UI is dismissed by canceling.
 //
 // It  should be  noted that  the  settings UI  lives as  long as  the
 // application client that uses it does. It is simply shown and hidden
